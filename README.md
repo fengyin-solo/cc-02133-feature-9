@@ -66,8 +66,11 @@ npm run build
 │   │   │   ├── HomeView.vue      # 首页
 │   │   │   ├── AboutView.vue     # 关于我们
 │   │   │   ├── ProductView.vue   # 产品服务
+│   │   │   ├── DataAnalysisOverview.vue # 数据分析服务方案概览
 │   │   │   ├── CaseView.vue      # 案例展示
 │   │   │   └── ContactView.vue   # 联系我们
+│   │   ├── data/                 # 静态业务数据
+│   │   │   └── analysisOverview.js # 数据分析能力/方案衔接矩阵数据
 │   │   ├── App.vue               # 根组件
 │   │   └── main.js               # 入口文件
 │   ├── Dockerfile                # Docker构建文件
@@ -88,6 +91,7 @@ npm run build
 | 首页 | Hero横幅、公司简介、核心优势、产品亮点、合作伙伴 |
 | 关于我们 | 公司介绍、发展历程、企业文化、团队风采 |
 | 产品服务 | 智慧物流系统介绍、功能模块、技术优势 |
+| 数据分析服务方案概览 | 多维报表/可视化大屏/智能预警/趋势分析能力清单、与仓储/运输/配送方案衔接对照、缺项与空数据原因说明 |
 | 案例展示 | 成功案例列表、案例详情 |
 | 联系我们 | 联系方式、公司地址、在线留言表单 |
 

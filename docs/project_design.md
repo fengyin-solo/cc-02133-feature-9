@@ -10,6 +10,7 @@ flowchart TD
         C --> C1[HomeView - 首页]
         C --> C2[AboutView - 关于我们]
         C --> C3[ProductView - 产品服务]
+        C --> C31[DataAnalysisOverview - 数据分析服务方案概览]
         C --> C4[CaseView - 案例展示]
         C --> C5[ContactView - 联系我们]
         
@@ -36,6 +37,7 @@ flowchart TD
 | 首页 | `/` | 公司介绍、核心业务、产品亮点 |
 | 关于我们 | `/about` | 公司简介、发展历程、企业文化 |
 | 产品服务 | `/products` | 智慧物流系统产品介绍 |
+| 数据分析服务方案概览 | `/solutions/data-analysis?solution=wms` | 四类分析能力与仓储/运输/配送方案衔接对照，标注缺项、空数据与不适配原因 |
 | 案例展示 | `/cases` | 成功案例展示 |
 | 联系我们 | `/contact` | 联系方式、地图、留言表单 |
 

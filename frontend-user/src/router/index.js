@@ -20,6 +20,12 @@ const routes = [
     meta: { title: '产品服务' }
   },
   {
+    path: '/solutions/data-analysis',
+    name: 'DataAnalysisOverview',
+    component: () => import('@/views/DataAnalysisOverview.vue'),
+    meta: { title: '数据分析服务方案概览' }
+  },
+  {
     path: '/cases',
     name: 'Cases',
     component: () => import('@/views/CaseView.vue'),

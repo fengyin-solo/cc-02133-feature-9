@@ -43,10 +43,21 @@
                 </div>
               </div>
             </div>
-            <el-button type="primary" size="large" @click="$router.push('/contact')">
-              获取方案
-              <el-icon class="el-icon--right"><ArrowRight /></el-icon>
-            </el-button>
+            <div class="product-actions">
+              <el-button type="primary" size="large" @click="$router.push('/contact')">
+                获取方案
+                <el-icon class="el-icon--right"><ArrowRight /></el-icon>
+              </el-button>
+              <el-button
+                v-if="product.id === 'data'"
+                size="large"
+                plain
+                @click="goToAnalysisOverview"
+              >
+                查看方案概览
+                <el-icon class="el-icon--right"><DataLine /></el-icon>
+              </el-button>
+            </div>
           </div>
           <div class="product-image">
             <div class="image-placeholder" :style="{ background: product.gradient }">
@@ -273,6 +284,14 @@ const switchTab = (productId) => {
   scrollToProduct(productId)
 }
 
+// 进入数据分析服务方案概览，带上当前产品页正在查看的方案作为初始对照方案
+const goToAnalysisOverview = () => {
+  const solution = ['wms', 'tms', 'dms'].includes(activeTab.value) ? activeTab.value : undefined
+  router.push(solution
+    ? { path: '/solutions/data-analysis', query: { solution } }
+    : { path: '/solutions/data-analysis' })
+}
+
 onMounted(() => {
   const tabFromQuery = route.query.tab
   const hashFromUrl = route.hash ? route.hash.replace('#product-', '') : ''
@@ -401,6 +420,12 @@ watch(() => route.query.tab, (newTab) => {
 
 .product-features {
   margin-bottom: $spacing-xl;
+}
+
+.product-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-md;
 }
 
 .feature-item {
