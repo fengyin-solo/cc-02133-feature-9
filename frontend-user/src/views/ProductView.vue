@@ -20,8 +20,8 @@
       </div>
     </section>
     
-    <!-- 产品列表 -->
-    <section class="section section-light">
+    <!-- 产品列表（方案概览展示时隐藏） -->
+    <section v-if="!showOverview" class="section section-light">
       <div class="container">
         <div
           v-for="product in products"
@@ -43,10 +43,21 @@
                 </div>
               </div>
             </div>
-            <el-button type="primary" size="large" @click="$router.push('/contact')">
-              获取方案
-              <el-icon class="el-icon--right"><ArrowRight /></el-icon>
-            </el-button>
+            <div class="product-actions">
+              <el-button type="primary" size="large" @click="$router.push('/contact')">
+                获取方案
+                <el-icon class="el-icon--right"><ArrowRight /></el-icon>
+              </el-button>
+              <el-button
+                v-if="product.id === 'data'"
+                size="large"
+                class="overview-entry-btn"
+                @click="enterOverview"
+              >
+                <el-icon class="el-icon--left"><View /></el-icon>
+                查看方案概览
+              </el-button>
+            </div>
           </div>
           <div class="product-image">
             <div class="image-placeholder" :style="{ background: product.gradient }">
@@ -59,8 +70,15 @@
       </div>
     </section>
     
-    <!-- 技术优势 -->
-    <section class="section section-gray">
+    <!-- 数据分析服务方案概览 -->
+    <section v-if="showOverview" class="section section-light">
+      <div class="container">
+        <SolutionOverview :plan="currentPlan" @update:plan="changePlan" @back="exitOverview" />
+      </div>
+    </section>
+
+    <!-- 技术优势（方案概览展示时隐藏） -->
+    <section v-if="!showOverview" class="section section-gray">
       <div class="container">
         <SectionTitle 
           title="技术优势" 
@@ -80,8 +98,8 @@
       </div>
     </section>
     
-    <!-- 服务流程 -->
-    <section class="section section-light">
+    <!-- 服务流程（方案概览展示时隐藏） -->
+    <section v-if="!showOverview" class="section section-light">
       <div class="container">
         <SectionTitle 
           title="服务流程" 
@@ -120,6 +138,7 @@
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import SectionTitle from '@/components/SectionTitle.vue'
+import SolutionOverview from '@/components/SolutionOverview.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -243,7 +262,14 @@ const products = [
   }
 ]
 
+const validTabs = ['wms', 'tms', 'dms', 'data']
+const validPlans = ['all', 'wms', 'tms', 'dms']
+
 const activeTab = ref('wms')
+// 当前对照方案：all / wms / tms / dms
+const currentPlan = ref('all')
+// 是否展示数据分析服务方案概览
+const showOverview = ref(false)
 
 const activeProduct = computed(() => {
   return products.find(p => p.id === activeTab.value) || products[0]
@@ -267,28 +293,101 @@ const scrollToProduct = (productId) => {
   })
 }
 
+const scrollToTop = () => {
+  nextTick(() => window.scrollTo({ top: 0, behavior: 'smooth' }))
+}
+
+// 依据当前视图状态同步路由 query / hash，保证返回与重新进入可还原
+const syncUrl = () => {
+  const query = { tab: activeTab.value }
+  if (showOverview.value) {
+    query.view = 'overview'
+    query.plan = currentPlan.value
+  }
+  // 使用 push 保留历史记录，浏览器前进 / 后退可逐级还原概览与对照方案
+  router.push({ query, hash: showOverview.value ? '' : `#product-${activeTab.value}` })
+}
+
 const switchTab = (productId) => {
+  if (!validTabs.includes(productId) || productId === activeTab.value) return
   activeTab.value = productId
-  router.replace({ query: { tab: productId }, hash: `#product-${productId}` })
+  // 非数据分析产品不展示概览；对照方案跟随当前产品，便于再次进入时对应
+  if (productId !== 'data') {
+    showOverview.value = false
+    currentPlan.value = productId
+  } else {
+    currentPlan.value = 'all'
+  }
+  syncUrl()
   scrollToProduct(productId)
 }
 
-onMounted(() => {
+// 进入数据分析服务方案概览
+const enterOverview = () => {
+  showOverview.value = true
+  syncUrl()
+  scrollToTop()
+}
+
+// 返回数据分析产品详情
+const exitOverview = () => {
+  showOverview.value = false
+  syncUrl()
+  scrollToProduct('data')
+}
+
+// 在概览中切换对照方案
+const changePlan = (planId) => {
+  if (!validPlans.includes(planId) || planId === currentPlan.value) return
+  currentPlan.value = planId
+  syncUrl()
+}
+
+// 从路由还原视图状态（首次进入 / 浏览器前进后退 / 外部链接）
+const applyRouteState = () => {
+  const wantsOverview = route.query.view === 'overview'
   const tabFromQuery = route.query.tab
   const hashFromUrl = route.hash ? route.hash.replace('#product-', '') : ''
-  const initialTab = tabFromQuery || hashFromUrl
-  if (initialTab && products.some(p => p.id === initialTab)) {
-    activeTab.value = initialTab
-    scrollToProduct(initialTab)
+  const tabCandidate = wantsOverview && !validTabs.includes(tabFromQuery) ? 'data' : tabFromQuery || hashFromUrl
+  activeTab.value = validTabs.includes(tabCandidate) ? tabCandidate : 'wms'
+
+  const planCandidate = route.query.plan
+  currentPlan.value = validPlans.includes(planCandidate) ? planCandidate : 'all'
+
+  // 概览仅属于数据分析产品；非 data 的 tab 一律不展示概览
+  showOverview.value = wantsOverview && activeTab.value === 'data'
+}
+
+onMounted(() => {
+  applyRouteState()
+  if (!showOverview.value) {
+    scrollToProduct(activeTab.value)
+  } else {
+    scrollToTop()
   }
 })
 
-watch(() => route.query.tab, (newTab) => {
-  if (newTab && products.some(p => p.id === newTab) && newTab !== activeTab.value) {
-    activeTab.value = newTab
-    scrollToProduct(newTab)
+// 浏览器前进 / 后退触发 query 变化时，保证概览与当前方案对应
+watch(
+  () => [route.query.tab, route.query.plan, route.query.view],
+  () => {
+    const previousTab = activeTab.value
+    const wasOverview = showOverview.value
+    applyRouteState()
+    nextTick(() => {
+      if (showOverview.value) {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      } else if (wasOverview || previousTab !== activeTab.value) {
+        // 从概览返回产品详情时需等待产品列表重新渲染后再定位
+        const el = document.getElementById(`product-${activeTab.value}`)
+        if (el) {
+          const top = el.getBoundingClientRect().top + window.scrollY - 80
+          window.scrollTo({ top, behavior: 'smooth' })
+        }
+      }
+    })
   }
-})
+)
 </script>
 
 <style lang="scss" scoped>
@@ -401,6 +500,24 @@ watch(() => route.query.tab, (newTab) => {
 
 .product-features {
   margin-bottom: $spacing-xl;
+}
+
+.product-actions {
+  display: flex;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+}
+
+.overview-entry-btn {
+  border-color: rgba($primary-color, 0.5);
+  color: $primary-color;
+
+  &:hover,
+  &:focus {
+    border-color: $primary-color;
+    background: rgba($primary-color, 0.06);
+    color: $primary-dark;
+  }
 }
 
 .feature-item {

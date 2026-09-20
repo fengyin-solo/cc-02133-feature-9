@@ -20,6 +20,7 @@ flowchart TD
         D --> D4[FeatureCard - 特性卡片]
         D --> D5[ProductCard - 产品卡片]
         D --> D6[CaseCard - 案例卡片]
+        D --> D7[SolutionOverview - 数据分析方案概览：能力清单 + 能力×方案衔接矩阵]
     end
     
     subgraph Static["静态资源"]
